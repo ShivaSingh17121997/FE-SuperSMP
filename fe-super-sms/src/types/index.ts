@@ -11,6 +11,9 @@ export interface User {
   phone?: string;
   isActive: boolean;
   createdAt: string;
+  isClassTeacher?: boolean;
+  class?: string;
+  section?: string;
 }
 
 export interface AuthState {
