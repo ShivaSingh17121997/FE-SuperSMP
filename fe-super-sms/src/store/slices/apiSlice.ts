@@ -6,7 +6,10 @@ import type {
   Question, QuestionPaper, BulkUploadResult, FilterMetadata,
 } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = rawApiUrl.endsWith('/api') || rawApiUrl.endsWith('/api/')
+  ? rawApiUrl
+  : rawApiUrl.replace(/\/$/, '') + '/api';
 
 export const apiSlice = createApi({
   reducerPath: 'api',

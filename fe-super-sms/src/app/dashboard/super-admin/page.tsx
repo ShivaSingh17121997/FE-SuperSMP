@@ -5,11 +5,57 @@ import { StatCard, Card } from '@/components/ui';
 import { AreaChartComponent, BarChartComponent } from '@/components/charts';
 import { Building2, Users, CreditCard, TrendingUp, HeadphonesIcon, Activity } from 'lucide-react';
 import { useGetDashboardStatsQuery, useGetSchoolsQuery } from '@/store/slices/apiSlice';
-import { revenueData, enrollmentTrendData } from '@/lib/mock-data';
 
 export default function SuperAdminDashboard() {
   const { data: dashStats, isLoading: statsLoading } = useGetDashboardStatsQuery();
   const { data: schools = [], isLoading: schoolsLoading } = useGetSchoolsQuery();
+
+  const getLast6Months = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const result = [];
+    const d = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const targetDate = new Date(d.getFullYear(), d.getMonth() - i, 1);
+      result.push({
+        month: months[targetDate.getMonth()],
+        year: targetDate.getFullYear(),
+        monthIndex: targetDate.getMonth(),
+      });
+    }
+    return result;
+  };
+
+  const getRevenueData = () => {
+    const months = getLast6Months();
+    return months.map(m => {
+      let revenue = 0;
+      schools.forEach((school: any) => {
+        const createdDate = new Date(school.createdAt);
+        const endOfMonth = new Date(m.year, m.monthIndex + 1, 0, 23, 59, 59, 999);
+        if (createdDate <= endOfMonth && school.isActive) {
+          if (school.plan === 'starter') revenue += 5000;
+          else if (school.plan === 'professional') revenue += 15000;
+          else if (school.plan === 'enterprise') revenue += 50000;
+        }
+      });
+      return { month: m.month, revenue };
+    });
+  };
+
+  const getEnrollmentData = () => {
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 5 }, (_, i) => currentYear - 4 + i);
+    return years.map(y => {
+      let students = 0;
+      schools.forEach((school: any) => {
+        const createdYear = new Date(school.createdAt).getFullYear();
+        if (createdYear <= y && school.isActive) {
+          students += school.studentsCount || 0;
+        }
+      });
+      return { year: String(y), students };
+    });
+  };
 
   const stats = [
     { title: 'Total Schools', value: String(dashStats?.totalSchools ?? schools.length), change: 12, changeLabel: 'vs last month', icon: Building2, color: 'indigo' },
@@ -36,11 +82,11 @@ export default function SuperAdminDashboard() {
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <h3 className="text-base font-semibold text-text-primary mb-4">Revenue Trend</h3>
-          <AreaChartComponent data={revenueData} dataKey="revenue" xKey="month" color="#6366f1" />
+          <AreaChartComponent data={getRevenueData()} dataKey="revenue" xKey="month" color="#6366f1" />
         </Card>
         <Card>
           <h3 className="text-base font-semibold text-text-primary mb-4">Enrollment Growth</h3>
-          <AreaChartComponent data={enrollmentTrendData} dataKey="students" xKey="year" color="#10b981" />
+          <AreaChartComponent data={getEnrollmentData()} dataKey="students" xKey="year" color="#10b981" />
         </Card>
       </div>
 

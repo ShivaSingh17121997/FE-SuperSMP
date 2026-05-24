@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { StatCard, Card, Badge } from '@/components/ui';
 import { BarChartComponent } from '@/components/charts';
 import { BookOpen, ClipboardList, FileText, Clock, Award, Star } from 'lucide-react';
-import { homeworkService } from '@/services/db';
-import { studentPerformanceData } from '@/lib/mock-data';
 import { useAuth } from '@/hooks';
 import { dashboardService, TeacherStats } from '@/services/dashboard';
 import api from '@/services/api';
@@ -16,6 +14,8 @@ export default function TeacherDashboard() {
   const [activeHomework, setActiveHomework] = useState<Homework[]>([]);
   const [todaysClasses, setTodaysClasses] = useState<any[]>([]);
   const [stats, setStats] = useState<TeacherStats | null>(null);
+  const [exams, setExams] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,12 +33,24 @@ export default function TeacherDashboard() {
         const timetableRes = await api.get(`/timetable?day=${dayName}`);
         setTodaysClasses(timetableRes.data.data);
 
-        // 3. Fetch Active Homework
-        let allHw = homeworkService.getAll();
+        // 3. Fetch Active Homework from API
+        const homeworkRes = await api.get('/homework');
+        let allHw = homeworkRes.data.data || [];
         if (user?.id) {
-          allHw = allHw.filter(h => h.assignedBy === user.id);
+          allHw = allHw.filter((h: any) => {
+            const assignedById = typeof h.assignedBy === 'object' ? h.assignedBy?._id || h.assignedBy?.id : h.assignedBy;
+            return assignedById === user.id;
+          });
         }
         setActiveHomework(allHw.slice(0, 5));
+
+        // 4. Fetch Exams and Exam Results
+        const [examsRes, resultsRes] = await Promise.all([
+          api.get('/exams'),
+          api.get('/exams/results/all'),
+        ]);
+        setExams(examsRes.data.data || []);
+        setExamResults(resultsRes.data.data || []);
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
       } finally {
@@ -50,6 +62,48 @@ export default function TeacherDashboard() {
       fetchData();
     }
   }, [user]);
+
+  const getSubjectPerformance = () => {
+    const examSubjectMap: Record<string, string> = {};
+    exams.forEach((e: any) => {
+      examSubjectMap[e._id || e.id] = e.subject;
+    });
+
+    const subjectSums: Record<string, { totalObtained: number; totalMax: number }> = {};
+    examResults.forEach((r: any) => {
+      const subject = examSubjectMap[r.examId];
+      if (subject) {
+        if (!subjectSums[subject]) {
+          subjectSums[subject] = { totalObtained: 0, totalMax: 0 };
+        }
+        subjectSums[subject].totalObtained += r.marksObtained || 0;
+        subjectSums[subject].totalMax += r.totalMarks || 100;
+      }
+    });
+
+    const data = Object.entries(subjectSums).map(([subject, stats]) => ({
+      subject,
+      average: stats.totalMax > 0 ? Math.round((stats.totalObtained / stats.totalMax) * 100) : 0,
+    }));
+
+    if (data.length === 0) {
+      return [
+        { subject: 'Math', average: 0 },
+        { subject: 'Science', average: 0 },
+        { subject: 'English', average: 0 },
+        { subject: 'Hindi', average: 0 },
+        { subject: 'SST', average: 0 },
+        { subject: 'CS', average: 0 },
+      ];
+    }
+    return data;
+  };
+
+  const getPassRate = () => {
+    if (examResults.length === 0) return 0;
+    const passed = examResults.filter((r: any) => (r.marksObtained / (r.totalMarks || 100)) >= 0.33).length;
+    return Math.round((passed / examResults.length) * 100);
+  };
 
   const dashboardStats = [
     { title: 'Today\'s Classes', value: stats?.todayClassesCount.toString() || '0', icon: BookOpen, color: 'indigo' },
@@ -145,12 +199,12 @@ export default function TeacherDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-text-primary">Class Performance</h3>
           <div className="flex gap-2">
-             <Badge variant="success">Pass Rate: 85%</Badge>
+             <Badge variant="success">Pass Rate: {getPassRate()}%</Badge>
           </div>
         </div>
         <div className="h-[300px]">
           <BarChartComponent
-            data={studentPerformanceData}
+            data={getSubjectPerformance()}
             dataKeys={[{ key: 'average', color: '#6366f1', name: 'Average Score' }]}
             xKey="subject"
           />
