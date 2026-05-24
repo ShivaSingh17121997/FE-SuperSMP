@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, GraduationCap, ClipboardList, BookOpen,
   FileText, CreditCard, Bell, Calendar, BarChart3, Settings,
-  Building2, Shield, UserCheck, BookCheck, Megaphone, Bus
+  Building2, Shield, UserCheck, BookCheck, Megaphone, Bus, Map, Database
 } from 'lucide-react';
 import type { UserRole } from '@/types';
 
@@ -23,6 +23,29 @@ export const SECTIONS = ['A', 'B', 'C', 'D'];
 export const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Physics', 'Chemistry', 'Biology'];
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+export const DIFFICULTIES = [
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' },
+];
+export const QUESTION_TYPES = [
+  { value: 'mcq', label: 'Multiple Choice (MCQ)' },
+  { value: 'paragraph', label: 'Paragraph / Theoretical' },
+];
+export const QUESTION_CATEGORIES = [
+  { value: 'optional', label: 'Optional' },
+  { value: 'theoretical', label: 'Theoretical' },
+  { value: 'practical', label: 'Practical' },
+];
+export const EXAM_TYPES = [
+  { value: 'unit-test', label: 'Unit Test' },
+  { value: 'mid-term', label: 'Mid Term' },
+  { value: 'final', label: 'Final Exam' },
+  { value: 'quiz', label: 'Quiz' },
+  { value: 'practice', label: 'Practice' },
+  { value: 'other', label: 'Other' },
+];
+
 interface NavItem {
   label: string;
   href: string;
@@ -38,6 +61,8 @@ export const SIDEBAR_NAV: NavItem[] = [
   { label: 'Attendance', href: '/dashboard/attendance', icon: ClipboardList, roles: ['school-admin', 'principal', 'teacher', 'parent', 'student'] },
   { label: 'Homework', href: '/dashboard/homework', icon: BookOpen, roles: ['school-admin', 'principal', 'teacher', 'parent', 'student'] },
   { label: 'Exams', href: '/dashboard/exams', icon: FileText, roles: ['school-admin', 'principal', 'teacher', 'parent', 'student'] },
+  { label: 'Question Bank', href: '/dashboard/question-bank', icon: Database, roles: ['school-admin', 'principal', 'teacher'] },
+  { label: 'Course Roadmap', href: '/dashboard/roadmap', icon: Map, roles: ['school-admin', 'principal', 'teacher', 'super-admin'] },
   { label: 'Timetable', href: '/dashboard/timetable', icon: Calendar, roles: ['super-admin', 'school-admin', 'principal', 'teacher', 'parent', 'student', 'staff'] },
   { label: 'Fees', href: '/dashboard/fees', icon: CreditCard, roles: ['school-admin', 'principal', 'parent'] },
   { label: 'Notices', href: '/dashboard/notices', icon: Megaphone, roles: ['school-admin', 'principal', 'teacher', 'parent', 'student', 'staff'] },

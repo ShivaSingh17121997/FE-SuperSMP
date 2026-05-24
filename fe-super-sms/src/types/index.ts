@@ -242,3 +242,98 @@ export interface UIState {
   theme: 'light' | 'dark';
   isMobileMenuOpen: boolean;
 }
+
+// ===== Question Bank Types =====
+export type QuestionType = 'mcq' | 'paragraph';
+export type DifficultyLevel = 'easy' | 'medium' | 'hard';
+export type QuestionCategory = 'optional' | 'theoretical' | 'practical';
+
+export interface QuestionOption {
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface Question {
+  id: string;
+  _id?: string;
+  schoolId: string;
+  class: string;
+  subject: string;
+  chapter: string;
+  topic: string;
+  questionType: QuestionType;
+  questionText: string;
+  marks: number;
+  difficulty: DifficultyLevel;
+  category: QuestionCategory;
+  options: QuestionOption[];      // MCQ only
+  modelAnswer: string;            // Paragraph only
+  tags: string[];
+  usageCount: number;
+  isActive: boolean;
+  createdBy?: string;
+  contentHash?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PaperQuestion {
+  _id?: string;
+  questionRef?: string | Question | null;
+  questionText: string;
+  questionType: QuestionType;
+  marks: number;
+  options: QuestionOption[];
+  modelAnswer: string;
+  order: number;
+}
+
+export interface PaperSection {
+  _id?: string;
+  name: string;
+  instructions: string;
+  questions: PaperQuestion[];
+  sectionMarks?: number;
+}
+
+export interface QuestionPaper {
+  id: string;
+  _id?: string;
+  schoolId: string;
+  title: string;
+  class: string;
+  subject: string;
+  examType: 'unit-test' | 'mid-term' | 'final' | 'quiz' | 'practice' | 'other';
+  totalMarks: number;
+  duration: number;
+  instructions: string;
+  sections: PaperSection[];
+  status: 'draft' | 'finalized';
+  createdBy?: { name: string; email: string } | string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface QuestionFilters {
+  class?: string;
+  subject?: string;
+  chapter?: string;
+  topic?: string;
+  questionType?: QuestionType | '';
+  category?: QuestionCategory | '';
+  difficulty?: DifficultyLevel | '';
+  search?: string;
+}
+
+export interface BulkUploadResult {
+  created: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface FilterMetadata {
+  classes: string[];
+  subjects: string[];
+  chapters: string[];
+  topics: string[];
+}

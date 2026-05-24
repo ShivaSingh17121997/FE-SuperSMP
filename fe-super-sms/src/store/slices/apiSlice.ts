@@ -3,6 +3,7 @@ import type { RootState } from '@/store';
 import type {
   Student, Teacher, Staff, AttendanceRecord, Homework, Exam, ExamResult,
   FeeInvoice, Notice, CalendarEvent, Notification, School,
+  Question, QuestionPaper, BulkUploadResult, FilterMetadata,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -25,6 +26,7 @@ export const apiSlice = createApi({
     'Students', 'Teachers', 'Staff', 'Attendance', 'Homework',
     'Exams', 'ExamResults', 'Fees', 'Notices', 'Calendar',
     'Notifications', 'ClassTeachers', 'Schools', 'Dashboard', 'Timetable',
+    'Questions', 'QuestionPapers', 'QuestionFilters',
   ],
   endpoints: (builder) => ({
 
@@ -339,6 +341,62 @@ export const apiSlice = createApi({
       query: (id) => ({ url: `/timetable/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Timetable'],
     }),
+
+    // ────────── Question Bank ──────────
+    getQuestions: builder.query<{ data: Question[]; pagination: any }, Record<string, string> | void>({
+      query: (params) => ({ url: '/question-bank/questions', params: params || {} }),
+      transformResponse: (res: any) => ({ data: res.data, pagination: res.pagination }),
+      providesTags: ['Questions'],
+    }),
+    getQuestion: builder.query<Question, string>({
+      query: (id) => `/question-bank/questions/${id}`,
+      transformResponse: (res: any) => res.data,
+    }),
+    createQuestion: builder.mutation<Question, Partial<Question>>({
+      query: (body) => ({ url: '/question-bank/questions', method: 'POST', body }),
+      invalidatesTags: ['Questions', 'QuestionFilters'],
+    }),
+    updateQuestion: builder.mutation<Question, { id: string; body: Partial<Question> }>({
+      query: ({ id, body }) => ({ url: `/question-bank/questions/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['Questions'],
+    }),
+    deleteQuestion: builder.mutation<void, string>({
+      query: (id) => ({ url: `/question-bank/questions/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['Questions'],
+    }),
+    bulkUploadQuestions: builder.mutation<{ data: BulkUploadResult }, any>({
+      query: (body) => ({ url: '/question-bank/questions/bulk', method: 'POST', body }),
+      invalidatesTags: ['Questions', 'QuestionFilters'],
+    }),
+    getQuestionFilters: builder.query<FilterMetadata, void>({
+      query: () => '/question-bank/filters',
+      transformResponse: (res: any) => res.data,
+      providesTags: ['QuestionFilters'],
+    }),
+
+    // ── Question Papers ──
+    getQuestionPapers: builder.query<{ data: QuestionPaper[]; pagination: any }, Record<string, string> | void>({
+      query: (params) => ({ url: '/question-bank/papers', params: params || {} }),
+      transformResponse: (res: any) => ({ data: res.data, pagination: res.pagination }),
+      providesTags: ['QuestionPapers'],
+    }),
+    getQuestionPaperById: builder.query<QuestionPaper, string>({
+      query: (id) => `/question-bank/papers/${id}`,
+      transformResponse: (res: any) => res.data,
+      providesTags: ['QuestionPapers'],
+    }),
+    createQuestionPaper: builder.mutation<QuestionPaper, any>({
+      query: (body) => ({ url: '/question-bank/papers', method: 'POST', body }),
+      invalidatesTags: ['QuestionPapers', 'Questions'],
+    }),
+    updateQuestionPaper: builder.mutation<QuestionPaper, { id: string; body: any }>({
+      query: ({ id, body }) => ({ url: `/question-bank/papers/${id}`, method: 'PUT', body }),
+      invalidatesTags: ['QuestionPapers'],
+    }),
+    deleteQuestionPaper: builder.mutation<void, string>({
+      query: (id) => ({ url: `/question-bank/papers/${id}`, method: 'DELETE' }),
+      invalidatesTags: ['QuestionPapers'],
+    }),
   }),
 });
 
@@ -388,4 +446,12 @@ export const {
   useGetTimetablesQuery, useCreateTimetableSlotMutation, useDeleteTimetableSlotMutation,
   // Auth Extra
   useResetPasswordMutation,
+  // Question Bank
+  useGetQuestionsQuery, useGetQuestionQuery, useCreateQuestionMutation,
+  useUpdateQuestionMutation, useDeleteQuestionMutation,
+  useBulkUploadQuestionsMutation, useGetQuestionFiltersQuery,
+  // Question Papers
+  useGetQuestionPapersQuery, useGetQuestionPaperByIdQuery,
+  useCreateQuestionPaperMutation, useUpdateQuestionPaperMutation,
+  useDeleteQuestionPaperMutation,
 } = apiSlice;

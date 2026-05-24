@@ -94,9 +94,9 @@ export default function TeachersPage() {
       alert('Password reset successfully!');
       setNewPass('');
       setResetting(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Reset failed:', err);
-      alert('Failed to reset password');
+      alert(err?.data?.message || err?.message || 'Failed to reset password');
     }
   };
 

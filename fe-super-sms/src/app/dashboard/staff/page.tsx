@@ -57,7 +57,10 @@ export default function StaffPage() {
       alert('Password reset successfully!');
       setNewPass('');
       setResetting(false);
-    } catch (err) { console.error('Reset failed:', err); alert('Failed to reset password'); }
+    } catch (err: any) { 
+      console.error('Reset failed:', err); 
+      alert(err?.data?.message || err?.message || 'Failed to reset password'); 
+    }
   };
 
   const handleDelete = async (id: string) => {
